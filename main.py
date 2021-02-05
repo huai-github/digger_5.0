@@ -4,6 +4,8 @@
 import random
 import sys
 import threading
+from time import sleep
+
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,6 +19,7 @@ from PyQt5.QtWidgets import QApplication, QWidget
 import digger_ui
 import multi_thread
 import globalvar as gl
+from my_thread import MyThread
 
 g_ui_threadLock = threading.Lock()
 h = 480  # 画布大小
@@ -30,29 +33,6 @@ y_max = 0
 zoom_x = 0
 zoom_y = 0
 delta = 5
-
-
-class UIFreshThread(object):  # 界面刷新线程
-	def __init__(self):
-		self.nowX = 0  # from gps
-		self.nowY = 0
-		self.deep = 0
-
-	def __call__(self):  # 调用实例本身 ——>> MyThread(self.__thread,....
-		self.nowX = multi_thread.g_x  # from gps
-		self.nowY = multi_thread.g_y
-		h_o_min = gl.get_value("h_o_min")
-		g_start_h_list = gl.get_value("g_start_h_list")
-
-		if h_o_min is not None and g_start_h_list is not None:
-			# self.deep = h_o - g_start_h_list[0]
-			self.deep = h_o_min
-
-	def get_msg_deep(self):
-		return self.deep
-
-	def get_msg_nowXY(self):
-		return self.nowX, self.nowY
 
 
 def isInParRect(x1, y1, x4, y4, x, y):
@@ -94,7 +74,7 @@ def gps_warning_led(qp, color, x, y):
 	brush = QBrush(Qt.SolidPattern)
 	qp.setBrush(brush)
 	qp.setBrush(color)
-	qp.drawEllipse(x, y, 50, 50)
+	qp.drawEllipse(int(x), int(y), 50, 50)
 
 
 def border_warning_led(qp, color, x, y):
@@ -102,7 +82,7 @@ def border_warning_led(qp, color, x, y):
 	brush = QBrush(Qt.SolidPattern)
 	qp.setBrush(brush)
 	qp.setBrush(color)
-	qp.drawEllipse(x, y, 50, 50)
+	qp.drawEllipse(int(x), int(y), 50, 50)
 
 
 class MyWindows(QWidget, digger_ui.Ui_Digger):
@@ -117,15 +97,26 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		self.DeepList = [0, 0, 0, 0, 0]
 		self.NumList = [0, 0, 0, 0, 0]
 
+		self.deep = 0
+		self.nowX = multi_thread.g_x
+		self.nowY = multi_thread.g_y
+
+		h_o_min = gl.get_value("h_o_min")
+		g_start_h_list = gl.get_value("g_start_h_list")
+
+		if h_o_min is not None and g_start_h_list is not None:
+			# self.deep = h_o_min - g_start_h_list[0]
+			self.deep = h_o_min
+
+		# self.deep = random.randint(-300, 300)
+
 		self.__timer = QtCore.QTimer()  # 定时器用于定时刷新
 		self.__timer.timeout.connect(self.update_ui)
 
-		self.__thread = threading.Thread(target=UIFreshThread(), daemon=True)
-		self.__thread.start()
 		self.__timer.start(50)  # ms
 
 	def leftWindow(self, img, sx_list, sy_list, ex_list, ey_list, s_width, e_width, nowX, nowY):
-		img[...] = 255  # 画布
+		img[::] = 255  # 画布
 		currentPoint = [nowX, nowY]
 		currentPoint_move = [None, None]
 		currentPoint_zoom = [None, None]
@@ -461,9 +452,6 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		self.rightLabel.setPixmap(pixmapR)
 		self.rightLabel.setScaledContents(True)  # 让图片自适应label大小
 
-	def showNowXY(self, nowX, nowY):
-		self.nowXY.setText("(%.3f, %.3f)" % (nowX, nowY))
-
 	def paintEvent(self, e):
 		x = self.groupBox_3.x()
 		y = self.groupBox_3.y()
@@ -476,10 +464,10 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 
 		x_border_warning = x + w_border_warning / 2
 		y_border_warning = y + h_border_warning / 2 - 10
-		print("border_warning", x_border_warning, y_border_warning)
+		# print("border_warning", x_border_warning, y_border_warning)
 		x_gps_warning = x + w_gps_warning / 2
 		y_gps_warning = y + h_gps_warning / 2 + 100
-		print("h_gps_warning", x_gps_warning, y_gps_warning)
+		# print("h_gps_warning", x_gps_warning, y_gps_warning)
 
 		qp = QPainter()
 		qp.begin(self)
@@ -511,10 +499,18 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		g_ui_threadLock.acquire()
 
 		h_o_min_flag = gl.get_value("h_o_min_flag")
+		# TODO 测试
+		h_o_min_flag = True
+		self.deep = random.randint(-300, 300)
+		# self.now_deep.setText(self.deep)
+
+		# sleep(1)
 		if h_o_min_flag:
-			self.rightWindow(self.imgBar, self.__thread.get_msg_deep())
+			self.now_deep.setText(str(self.deep))
+			self.rightWindow(self.imgBar, self.deep)
 		else:
-			print("working...")
+			pass
+			# print("working...")
 		g_start_x_list = gl.get_value('g_start_x_list')
 		g_start_y_list = gl.get_value('g_start_y_list')
 		g_start_h_list = gl.get_value('g_start_h_list')
@@ -526,7 +522,8 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		# print('g_end_w_list:', g_end_w_list)
 
 		# TODO:测试数据
-		# current_x, current_y = self.__thread.get_msg_nowXY()
+		# current_x = self.nowX
+		# current_y = self.nowY
 		current_x = random.randint(1, 300)
 		current_y = random.randint(1, 300)
 		self.leftWindow(self.imgLine, g_start_x_list, g_start_y_list, g_end_x_list, g_end_y_list,
@@ -535,12 +532,13 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		                int(current_x),
 		                int(current_y),
 		                )
-
+		# 显示挖掘机ID
 		digger_id = gl.get_value("diggerId")
 		self.diggerID.setText(str(digger_id))
-
+		# 显示当前坐标
 		global x_min, y_min
-		self.showNowXY((current_x - x_min) * zoom_x + delta, (current_y - y_min) * zoom_x + delta)
+		self.nowXY.setText("(%.2f, %.2f)"
+		                   % ((current_x - x_min) * zoom_x + delta, (current_y - y_min) * zoom_x + delta))
 		g_ui_threadLock.release()
 
 

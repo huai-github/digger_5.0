@@ -37,7 +37,7 @@ class SendMessage(object):
 
 
 def task_switch_dict(rec_buf):
-	rec_buf = rec_buf[0:-1]  # 去掉'\n'
+	rec_buf = rec_buf[0:-1]  # 去掉'\n'   <class 'bytes'>
 	rec_to_str = str(rec_buf, encoding="utf-8")  # bytes -> str，不是dict！！！
 	rec_buf_dict = ast.literal_eval(rec_to_str)  # str -> dict
 	return rec_buf_dict

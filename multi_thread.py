@@ -119,7 +119,7 @@ def thread_4g_func():
 			received_flag = True
 			gl.set_value("received_flag", received_flag)
 		else:
-			print("！！4g接受出错！！\n")
+			print("！！4g receive error！！\n")
 
 		""" 信息上报 """
 		if h_o_min_flag:  # 算完最低点

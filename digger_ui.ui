@@ -62,7 +62,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="5,5">
+    <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="5,0,5">
      <item>
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
@@ -98,7 +98,7 @@ font: 14pt &quot;微软雅黑&quot;;</string>
           <item>
            <widget class="QLabel" name="diggerID">
             <property name="styleSheet">
-             <string notr="true">font: 14pt &quot;AcadEref&quot;;</string>
+             <string notr="true">font: 12pt &quot;Consolas&quot;;</string>
             </property>
             <property name="text">
              <string/>
@@ -136,7 +136,46 @@ font: 14pt &quot;微软雅黑&quot;;</string>
           <item>
            <widget class="QLabel" name="nowXY">
             <property name="styleSheet">
-             <string notr="true">font: 14pt &quot;AcadEref&quot;;</string>
+             <string notr="true">
+font: 12pt &quot;Consolas&quot;;</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="10,1,30">
+          <item>
+           <widget class="QLabel" name="now_deep_label">
+            <property name="styleSheet">
+             <string notr="true">font: 75 9pt &quot;微软雅黑&quot;;
+font: 14pt &quot;微软雅黑&quot;;</string>
+            </property>
+            <property name="text">
+             <string>当前深度：</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_5">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="now_deep">
+            <property name="styleSheet">
+             <string notr="true">font: 12pt &quot;Consolas&quot;;</string>
             </property>
             <property name="text">
              <string/>
@@ -146,6 +185,13 @@ font: 14pt &quot;微软雅黑&quot;;</string>
          </layout>
         </item>
        </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="Line" name="line_4">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
       </widget>
      </item>
      <item>
