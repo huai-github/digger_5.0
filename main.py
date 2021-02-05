@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # coding = utf-8
+
 import random
 import sys
 import threading
@@ -13,7 +14,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QImage, QPixmap, QPainter
 from PyQt5.QtWidgets import QApplication, QWidget
 
-import UI
+import digger_ui
 import multi_thread
 import globalvar as gl
 
@@ -41,7 +42,6 @@ class UIFreshThread(object):  # 界面刷新线程
 		self.nowX = multi_thread.g_x  # from gps
 		self.nowY = multi_thread.g_y
 		h_o_min = gl.get_value("h_o_min")
-		# base_h = gl.get_value("base_h")
 		g_start_h_list = gl.get_value("g_start_h_list")
 
 		if h_o_min is not None and g_start_h_list is not None:
@@ -89,26 +89,27 @@ def isInRect(x1, y1, x2, y2, x3, y3, x4, y4, x, y):
 	return isInParRect(x1, y1, x4, y4, x, y)
 
 
-def gps_warning_led(qp, color):
+def gps_warning_led(qp, color, x, y):
 	qp.setPen(color)
 	brush = QBrush(Qt.SolidPattern)
 	qp.setBrush(brush)
 	qp.setBrush(color)
-	qp.drawEllipse(750, 780-28, 50, 50)
+	qp.drawEllipse(x, y, 50, 50)
 
 
-def border_warning_led(qp, color):
+def border_warning_led(qp, color, x, y):
 	qp.setPen(color)
 	brush = QBrush(Qt.SolidPattern)
 	qp.setBrush(brush)
 	qp.setBrush(color)
-	qp.drawEllipse(750, 710-28, 50, 50)
+	qp.drawEllipse(x, y, 50, 50)
 
 
-class MyWindows(QWidget, UI.Ui_Form):
+class MyWindows(QWidget, digger_ui.Ui_Digger):
 	def __init__(self):
 		super().__init__()
 		self.setupUi(self)
+
 		self.imgLine = np.zeros((h, w, 3), np.uint8)  # 画布
 		self.imgBar = np.zeros((h, w, 3), np.uint8)
 		self.figure = plt.figure()  # 可选参数,facecolor为背景颜色
@@ -125,7 +126,6 @@ class MyWindows(QWidget, UI.Ui_Form):
 
 	def leftWindow(self, img, sx_list, sy_list, ex_list, ey_list, s_width, e_width, nowX, nowY):
 		img[...] = 255  # 画布
-
 		currentPoint = [nowX, nowY]
 		currentPoint_move = [None, None]
 		currentPoint_zoom = [None, None]
@@ -311,7 +311,7 @@ class MyWindows(QWidget, UI.Ui_Form):
 		for i in range(len(sx_list2)):
 			cv.line(img, (int(sx_list2[i]), int(sy_list2[i])), (int(ex_list2[i]), int(ey_list2[i])), (0, 255, 0), 1)
 
-		"""如果交点存在"""
+		# 如果交点存在
 		if save_intersection_xl:
 			# 下面偏移的线
 			# 地点到第一个交点
@@ -355,7 +355,7 @@ class MyWindows(QWidget, UI.Ui_Form):
 			        (0, 0, 255),
 			        2)
 
-		"""交点不存在"""
+		# 如果交点不存在
 		if not save_intersection_xl:
 			cv.line(img,
 			        (int(save_line_point_sx_l_list[0]), int(save_line_point_sy_l_list[0])),
@@ -406,7 +406,6 @@ class MyWindows(QWidget, UI.Ui_Form):
 
 		cv.circle(img, currentPoint_zoom, 5, [0, 0, 255], -1)
 
-		# It returns positive (inside), negative (outside), or zero (on an edge)
 		dist = cv.pointPolygonTest(contours[1], currentPoint_zoom, False)
 		# print("dist:", dist)
 		gl.set_value("dist", dist)
@@ -418,7 +417,9 @@ class MyWindows(QWidget, UI.Ui_Form):
 		                   QImage.Format_RGB888)
 
 		pixmapL = QPixmap(QtImgLine)
+
 		self.leftLabel.setPixmap(pixmapL)
+		self.leftLabel.setScaledContents(True)
 
 	def rightWindow(self, img, deep):
 		img[::] = 255  # 设置画布颜色
@@ -458,32 +459,49 @@ class MyWindows(QWidget, UI.Ui_Form):
 		pixmapR = QPixmap(QtImgBar)
 
 		self.rightLabel.setPixmap(pixmapR)
+		self.rightLabel.setScaledContents(True)  # 让图片自适应label大小
 
 	def showNowXY(self, nowX, nowY):
 		self.nowXY.setText("(%.3f, %.3f)" % (nowX, nowY))
 
 	def paintEvent(self, e):
+		x = self.groupBox_3.x()
+		y = self.groupBox_3.y()
+
+		h_border_warning = self.border_warning.height()
+		w_border_warning = self.border_warning.width()
+
+		h_gps_warning = self.gps_warning.height()
+		w_gps_warning = self.gps_warning.width()
+
+		x_border_warning = x + w_border_warning / 2
+		y_border_warning = y + h_border_warning / 2 - 10
+		print("border_warning", x_border_warning, y_border_warning)
+		x_gps_warning = x + w_gps_warning / 2
+		y_gps_warning = y + h_gps_warning / 2 + 100
+		print("h_gps_warning", x_gps_warning, y_gps_warning)
+
 		qp = QPainter()
 		qp.begin(self)
 		"""GPS信号指示灯"""
 		gps_stable_flag = gl.get_value("gps_stable_flag")
 		if gps_stable_flag is not None:
 			if gps_stable_flag:
-				gps_warning_led(qp, Qt.green)
+				gps_warning_led(qp, Qt.green, x_gps_warning, y_gps_warning)
 			elif not gps_stable_flag:
-				gps_warning_led(qp, Qt.red)
+				gps_warning_led(qp, Qt.red, x_gps_warning, y_gps_warning)
 			else:
-				gps_warning_led(qp, Qt.yellow)
+				gps_warning_led(qp, Qt.yellow, x_gps_warning, y_gps_warning)
 
 			"""边界信号指示灯"""
 			dist = gl.get_value("dist")
 			if dist is not None:
 				if dist == -1:
-					border_warning_led(qp, Qt.red)
+					border_warning_led(qp, Qt.red, x_border_warning, y_border_warning)
 				elif dist == 1 or dist == 0:
-					border_warning_led(qp, Qt.green)
+					border_warning_led(qp, Qt.green, x_border_warning, y_border_warning)
 				else:
-					border_warning_led(qp, Qt.yellow)
+					border_warning_led(qp, Qt.yellow, x_border_warning, y_border_warning)
 		qp.end()
 		# 刷新
 		self.setUpdatesEnabled(True)
