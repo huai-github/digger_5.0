@@ -74,4 +74,4 @@ def get_xyhw(rec_buf_dict):
 				end_point_w.append(v)
 
 	return start_point_x, start_point_y, start_point_h, start_point_w, \
-	       end_point_x, end_point_y, end_point_h, end_point_w
+	        end_point_x, end_point_y, end_point_h, end_point_w

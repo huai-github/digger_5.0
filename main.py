@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QDateTime
 from PyQt5.QtGui import QBrush, QImage, QPixmap, QPainter
 from PyQt5.QtWidgets import QApplication, QWidget
 
@@ -108,8 +108,6 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 			# self.deep = h_o_min - g_start_h_list[0]
 			self.deep = h_o_min
 
-		# self.deep = random.randint(-300, 300)
-
 		self.__timer = QtCore.QTimer()  # 定时器用于定时刷新
 		self.__timer.timeout.connect(self.update_ui)
 
@@ -196,13 +194,13 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		# 所有点 = 中线坐标 + 平移出的坐标 + 交点坐标
 		x_list = (sx_list + ex_list) + \
 		         (
-					         save_line_point_sx_l_list + save_line_point_sx_r_list + save_line_point_ex_l_list + save_line_point_ex_r_list) + \
+				         save_line_point_sx_l_list + save_line_point_sx_r_list + save_line_point_ex_l_list + save_line_point_ex_r_list) + \
 		         (save_intersection_xl + save_intersection_xr)
 		x_list.append(currentPoint[0])
 
 		y_list = (sy_list + ey_list) + \
 		         (
-					         save_line_point_sy_l_list + save_line_point_sy_r_list + save_line_point_ey_l_list + save_line_point_ey_r_list) + \
+				         save_line_point_sy_l_list + save_line_point_sy_r_list + save_line_point_ey_l_list + save_line_point_ey_r_list) + \
 		         (save_intersection_yl + save_intersection_yr)
 		y_list.append(currentPoint[1])
 
@@ -422,7 +420,6 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		self.DeepList.append(deep)
 		self.NumList.append(' ')
 
-		# 将self.DeepList中的数据转化为float类型
 		self.DeepList = list(map(float, self.DeepList))
 
 		# 将x,y轴转化为矩阵式
@@ -430,7 +427,7 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		y = np.array(self.DeepList)
 
 		colors = ["g" if i > 0 else "r" for i in self.DeepList]
-		plt.clf()
+		plt.clf()  # 清空画布
 		plt.bar(range(len(self.NumList)), self.DeepList, tick_label=self.NumList, color=colors, width=0.5)
 
 		# 在柱体上显示数据
@@ -501,12 +498,14 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		h_o_min_flag = gl.get_value("h_o_min_flag")
 		# TODO 测试
 		h_o_min_flag = True
-		self.deep = random.randint(-300, 300)
-		# self.now_deep.setText(self.deep)
+		self.deep = random.randint(-100, 300)
 
-		# sleep(1)
 		if h_o_min_flag:
-			self.now_deep.setText(str(self.deep))
+			# 清空标志位
+			h_o_min_flag = gl.set_value("h_o_min_flag", False)
+
+			# 显示挖掘深度
+			self.now_deep.setText(str(self.deep) + "米")
 			self.rightWindow(self.imgBar, self.deep)
 		else:
 			pass
@@ -519,7 +518,6 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		g_end_y_list = gl.get_value('g_end_y_list')
 		g_end_h_list = gl.get_value('g_end_h_list')
 		g_end_w_list = gl.get_value('g_end_w_list')
-		# print('g_end_w_list:', g_end_w_list)
 
 		# TODO:测试数据
 		# current_x = self.nowX
@@ -537,15 +535,20 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		self.diggerID.setText(str(digger_id))
 		# 显示当前坐标
 		global x_min, y_min
-		self.nowXY.setText("(%.2f, %.2f)"
+		self.nowXY.setText("(%.3f, %.3f)"
 		                   % ((current_x - x_min) * zoom_x + delta, (current_y - y_min) * zoom_x + delta))
-		g_ui_threadLock.release()
+
+		g_ui_threadLock.release()  # ????????????????????????
+
+		date = QDateTime.currentDateTime()
+		current_time = date.toString("yyyy-MM-dd hh:mm dddd")
+		self.time.setText(current_time)
 
 
 if __name__ == "__main__":
 	gl.gl_init()
 
-	# 使用setDaemon(True)把所有的子线程都变成了主线程的守护线程，因此当主进程结束后，子线程也会随之结束
+	# 使用Daemon(True)把所有的子线程都变成了主线程的守护线程，因此当主进程结束后，子线程也会随之结束
 	gps_thread = threading.Thread(target=multi_thread.thread_gps_func, daemon=False)
 	_4g_thread = threading.Thread(target=multi_thread.thread_4g_func, daemon=False)
 	# gyro_thread = threading.Thread(target=multi_thread.thread_gyro2_func, daemon=False)
@@ -576,5 +579,6 @@ if __name__ == "__main__":
 			gl.set_value("received_flag", received_flag)
 
 			mainWindow = MyWindows()
+			mainWindow.showFullScreen()  # 窗口全屏显示
 			mainWindow.show()
 			sys.exit(app.exec_())
