@@ -1,4 +1,21 @@
+import globalvar as gl
 
+
+da_bi_total = 0
+xiao_bi_total = 0
+dou_total = 0
+
+
+def parameter_config():
+	if gl.get_value("calibration_on_button_flag"):
+		# 清空标志位
+		gl.set_value("calibration_on_button_flag", False)
+		# 臂缩到做最短时，可以知道臂的长度，此时臂长-激光长度 == 固定长度（初始化的值）
+		da_bi_config = da_bi_total - gl.get_value("da_bi_config")
+		xiao_bi_config = xiao_bi_total - gl.get_value("xiao_bi_config")
+		dou_config = dou_total - gl.get_value("dou_config")
+		pitch_2_config = gl.get_value("pitch_2_config")
+		roll_2_config = gl.get_value("roll_2_config")
 
 
 def altitude_calculate_func():

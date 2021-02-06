@@ -4,7 +4,6 @@
 import random
 import sys
 import threading
-from time import sleep
 
 import cv2 as cv
 import numpy as np
@@ -14,12 +13,11 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QDateTime
 from PyQt5.QtGui import QBrush, QImage, QPixmap, QPainter
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
 
 import digger_ui
 import multi_thread
 import globalvar as gl
-from my_thread import MyThread
 
 g_ui_threadLock = threading.Lock()
 h = 480  # 画布大小
@@ -112,6 +110,12 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		self.__timer.timeout.connect(self.update_ui)
 
 		self.__timer.start(50)  # ms
+		# 校准
+		self.calibration_button.clicked.connect(self.calibration)
+
+	def calibration(self):
+		self.calibration_text.setText("已按下校准按钮。。。")
+		gl.set_value("calibration_on_button_flag", True)
 
 	def leftWindow(self, img, sx_list, sy_list, ex_list, ey_list, s_width, e_width, nowX, nowY):
 		img[::] = 255  # 画布
