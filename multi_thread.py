@@ -12,11 +12,12 @@ g_h = 0
 
 g_gps_threadLock = threading.Lock()
 g_4g_threadLock = threading.Lock()
-g_gyro2_threadLock = threading.Lock()
+g_gyro2_da_bi_threadLock = threading.Lock()
+g_gyro2_xiao_bi_threadLock = threading.Lock()
 g_gyro3_threadLock = threading.Lock()
-g_laser1_threadLock = threading.Lock()
-g_laser2_threadLock = threading.Lock()
-g_laser3_threadLock = threading.Lock()
+g_laser_da_bi_threadLock = threading.Lock()
+g_laser2_xiao_bi_threadLock = threading.Lock()
+g_laser3_dou_threadLock = threading.Lock()
 
 
 class TimeInterval(object):
@@ -68,7 +69,9 @@ def thread_gps_func():
 			global g_x, g_y, g_h
 			g_x, g_y = LatLon2XY(gps_msg_switch.latitude, gps_msg_switch.longitude)
 			g_h = gps_msg_switch.altitude
-			gl.set_value("gps_h", g_h)  # to calculate.py, 计算挖斗的最低点需要
+			gl.set_value("gps_x", g_x)
+			gl.set_value("gps_y", g_y)
+			gl.set_value("gps_h", g_h)  # to calculate_main.py
 
 			print("x:%s\ty:%s\t%s" % (g_x, g_y, g_h))
 
@@ -122,8 +125,9 @@ def thread_4g_func():
 			print("！！4g receive error！！\n")
 
 		""" 信息上报 """
-		if h_o_min_flag:  # 算完最低点
+		if h_o_min_flag:  # 得到最低点
 			h_o_min = gl.get_value("h_o_min")
+			# 发送x,y,h,w
 			send = SendMessage(TYPE_SEND, diggerId, round(g_x, 3), round(g_y, 3), round(h_o_min, 3), 0)
 			send_msg_json = send.switch_to_json()
 			com_4g.send_data(send_msg_json.encode('utf-8'))
@@ -134,21 +138,38 @@ def thread_4g_func():
 		g_4g_threadLock.release()  # 解锁
 
 
-def thread_gyro2_func():
+def thread_gyro2_da_bi_func():
 	GYRO_COM = "com32"
 	gyro = Gyro2(GYRO_COM)
 	while True:
-		g_gyro2_threadLock.acquire()
+		g_gyro2_da_bi_threadLock.acquire()
 		angle = gyro.get_angle()
 		roll = angle[0]
 		pitch = angle[1]
 
 		if roll is not None and pitch is not None:
-			gl.set_value("roll_2", roll)
-			gl.set_value("pitch_2", pitch)
-			print("roll_2:", roll)
-			print("pitch_2:", pitch)
-		g_gyro2_threadLock.release()
+			gl.set_value("roll_2_da_bi", roll)
+			gl.set_value("pitch_2_da_bi", pitch)
+			print("roll_2_da_bi:", roll)
+			print("pitch_2_da_bi:", pitch)
+		g_gyro2_da_bi_threadLock.release()
+
+
+def thread_gyro2_xiao_bi_func():
+	GYRO_COM = "com38"
+	gyro = Gyro2(GYRO_COM)
+	while True:
+		g_gyro2_xiao_bi_threadLock.acquire()
+		angle = gyro.get_angle()
+		roll = angle[0]
+		pitch = angle[1]
+
+		if roll is not None and pitch is not None:
+			gl.set_value("roll_2_xiao_bi", roll)
+			gl.set_value("pitch_2_xiao_bi", pitch)
+			print("roll_2_xiao_bi:", roll)
+			print("pitch_2_xiao_bi:", pitch)
+		g_gyro2_xiao_bi_threadLock.release()
 
 
 def thread_gyro3_func():
@@ -171,40 +192,40 @@ def thread_gyro3_func():
 		g_gyro3_threadLock.release()
 
 
-def thread_laser1_func():
+def thread_laser_da_bi_func():
 	LASER1_COM = "com37"
 	laser1 = Laser(LASER1_COM)
 	while True:
-		g_laser1_threadLock.acquire()
+		g_laser_da_bi_threadLock.acquire()
 		laser1_dist = laser1.get_distance()
 		if laser1_dist is not None:
-			gl.set_value("laser1_dist", laser1_dist)
-			print("laser1_dist", laser1_dist)
-		g_laser1_threadLock.release()
+			gl.set_value("da_bi_laser_len", laser1_dist)
+			print("da_bi_laser_len", laser1_dist)
+		g_laser_da_bi_threadLock.release()
 
 
-def thread_laser2_func():
+def thread_laser_xiao_bi_func():
 	LASER2_COM = "com38"
 	laser2 = Laser(LASER2_COM)
 	while True:
-		g_laser2_threadLock.acquire()
+		g_laser2_xiao_bi_threadLock.acquire()
 		laser2_dist = laser2.get_distance()
 		if laser2_dist is not None:
-			gl.set_value("laser2_dist", laser2_dist)
-			print("laser2_dist", laser2_dist)
-		g_laser2_threadLock.release()
+			gl.set_value("xiao_bi_laser_len", laser2_dist)
+			print("xiao_bi_laser_len", laser2_dist)
+		g_laser2_xiao_bi_threadLock.release()
 
 
-def thread_laser3_func():
+def thread_laser_dou_func():
 	LASER3_COM = "com39"
 	laser3 = Laser(LASER3_COM)
 	while True:
-		g_laser3_threadLock.acquire()
+		g_laser3_dou_threadLock.acquire()
 		laser3_dist = laser3.get_distance()
 		if laser3_dist is not None:
-			gl.set_value("laser3_dist", laser3_dist)
-			print("laser3_dist", laser3_dist)
-		g_laser3_threadLock.release()
+			gl.set_value("dou_laser_len", laser3_dist)
+			print("dou_laser_len", laser3_dist)
+		g_laser3_dou_threadLock.release()
 
 
 

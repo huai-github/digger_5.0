@@ -70,7 +70,7 @@ class SerialPortCommunication(object):
 			print("--Send Error--")
 
 	def rec_data(self, rec_buff, rec_len, way=0):
-		"""[b'$', b'\x00', b'\x01', b'\x08', b'\x01', b'\x00', b'\x00', b'\n']"""
+		"""[b'$', b'\x00', b'\x01', b'\x08', b'\x01', b'\x00', b'\x00', b'\n', ...]"""
 		while True:
 			try:
 				if self.com.in_waiting:  # in_waiting返回接收缓冲区的字节数
