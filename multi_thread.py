@@ -154,10 +154,10 @@ def thread_4g_func():
 	""" 信息上报 """
 	# if h_o_min_flag:  # 得到最低点
 	###########################################################################################################
-	h_o_min = gl.get_value("h_o_min")
-	# 发送x,y,h,w
-	send = SendMessage(TYPE_SEND, diggerId, round(g_x, 3), round(g_y, 3), round(h_o_min, 3), 0)
-	send_msg_json = send.switch_to_json()
+	# h_o_min = gl.get_value("h_o_min")
+	# # 发送最低点的x,y,h,w
+	# send = SendMessage(TYPE_SEND, diggerId, round(g_x, 3), round(g_y, 3), round(h_o_min, 3), 0)
+	# send_msg_json = send.switch_to_json()
 	# com_4g.send_data(send_msg_json.encode('utf-8'))
 	###########################################################################################################
 	time.sleep(0.1)

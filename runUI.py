@@ -196,20 +196,10 @@ if __name__ == "__main__":
 	WinMaintn_thread.start()
 	sleep(1)
 
-
-
-
-
-
-
-
-
 	app = QApplication(sys.argv)
 	mainWindow = MyWindows()
 
-	# f = open("out.txt", "w")
 	while True:
-		# time.sleep(1)
 		taskAnalysisFlg = gl.get_value("taskAnalysisFlg")
 		if taskAnalysisFlg:
 			# 清空接受完成标志位
