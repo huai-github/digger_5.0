@@ -5,21 +5,22 @@ import numpy as np
 # from smop.libsmop import *
 
 
-def DiggerModelMecharm(laserLen=None, angle=None):
+def DiggerModelMecharm(para=None):
 	# laserLen: 参数分别是大臂、小臂、挖斗对应的激光长度
 	# angle: 大臂、小臂角度传感器的角度
 
 	# 解析输入参数
-	dlt_bc = laserLen[0]
-	dlt_de = laserLen[1]
-	dlt_fi = laserLen[2]
+	#dlt_bc = laserLen[0]
+	#dlt_de = laserLen[1]
 
-	a_ag_angle = angle[0]  # 角度传感器检测角度
-	a_gj_angle = angle[1]
+
+	a_ag_angle = para[0]  # 角度传感器检测角度
+	a_gj_angle = para[1]
+	dlt_fi = para[2]
 
 	# 挖掘机结构参数
-	l_bc_nls = 691
-	l_de_nls = 965.5
+	#l_bc_nls = 691
+	#l_de_nls = 965.5
 	l_fi_nls = 701.125
 
 	# 各点的高程,h表示高程，g表示对应的点
@@ -27,11 +28,11 @@ def DiggerModelMecharm(laserLen=None, angle=None):
 	l_ab = 402
 	l_ag = 3000
 	l_ad = 1911
-	l_bc = l_bc_nls + dlt_bc
+	#l_bc = l_bc_nls + dlt_bc
 	l_cg = 1776
 	l_cd = 591.4765
 	l_dg = 1724
-	l_de = l_de_nls + dlt_de
+	#l_de = l_de_nls + dlt_de
 	l_eg = 492
 	l_eh = 1794
 	l_fg = 382.2643
@@ -56,8 +57,8 @@ def DiggerModelMecharm(laserLen=None, angle=None):
 	z_j = 0
 	z_o = 0
 
-	a_ag = np.dot(a_ag_angle, np.pi) / 180
-	a_gj = np.dot(- (90 - a_gj_angle), np.pi) / 180
+	a_ag = np.dot(a_ag_angle, np.pi) / 180.0
+	a_gj = np.dot(- (90 - a_gj_angle), np.pi) / 180.0
 	a_ghj = acos((l_gh ** 2 + l_hj ** 2 - l_gj ** 2) / (np.dot(np.dot(2, l_gh), l_hj)))
 	a_ghf = acos((l_gh ** 2 + l_fh ** 2 - l_fg ** 2) / (np.dot(np.dot(2, l_gh), l_fh)))
 	a_fhi = acos((l_fh ** 2 + l_hi ** 2 - l_fi ** 2) / (np.dot(np.dot(2, l_fh), l_hi)))
@@ -70,12 +71,15 @@ def DiggerModelMecharm(laserLen=None, angle=None):
 	a_gjh = acos((l_gj ** 2 + l_hj ** 2 - l_gh ** 2) / (np.dot(np.dot(2, l_gj), l_hj)))
 	a_kjo = acos((l_jk ** 2 + l_jo ** 2 - l_ko ** 2) / (np.dot(np.dot(2, l_jk), l_jo)))
 	a_jo = a_jg - (a_gjh + a_hjk + a_kjo)
+
 	z_g = z_a + np.dot(l_ag, np.sin(a_ag))
 	y_g = y_a + np.dot(l_ag, np.cos(a_ag))
-	z_g = z_g + np.dot(angle[0], 0.709) + 257.8333
-	y_g = y_g - np.dot(6.495, angle[0]) + 3.9874
+	z_g = z_g + np.dot(para[0], 0.709) + 257.8333
+	y_g = y_g - np.dot(6.495, para[0]) + 3.9874
+
 	z_j = z_g - np.dot(l_gj, np.cos(a_gj))
 	y_j = y_g + np.dot(l_gj, np.sin(a_gj))
+
 	z_o = z_j - np.dot(l_jo, np.cos(a_jo))
 	y_o = y_j + np.dot(l_jo, np.sin(a_jo))
 
