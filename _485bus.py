@@ -4,6 +4,7 @@ import time
 from serial_port import SerialPortCommunication
 import globalvar as gl
 from globalvar import my_lock
+from globalvar import data_ready_flg
 
 
 def gyroDataAnalysis(gyro_rec_buf, addr):
@@ -95,14 +96,12 @@ def bus485ThreadFunc():
 			print("\r\n!!小臂陀螺仪--地址发送失败!! \r\n")
 			break
 
-		gl.set_value("roll_2_di_pan", gyroChassisAngle[0])
-		gl.set_value("pitch_2_di_pan", gyroChassisAngle[1])
-		gl.set_value("roll_2_da_bi", gyroBigArmAngle[0])
-		gl.set_value("pitch_2_da_bi", gyroBigArmAngle[1])
-		gl.set_value("roll_2_xiao_bi", gyroLittleArmAngle[0])
-		gl.set_value("pitch_2_xiao_bi", gyroLittleArmAngle[1])
+		if gyroChassisAngle and gyroBigArmAngle and gyroLittleArmAngle:
+			gl.set_value("roll_2_di_pan", gyroChassisAngle[0])
+			gl.set_value("pitch_2_di_pan", gyroChassisAngle[1])
+			gl.set_value("roll_2_da_bi", gyroBigArmAngle[0])
+			gl.set_value("pitch_2_da_bi", gyroBigArmAngle[1])
+			gl.set_value("roll_2_xiao_bi", gyroLittleArmAngle[0])
+			gl.set_value("pitch_2_xiao_bi", gyroLittleArmAngle[1])
 
-
-if __name__ == '__main__':
-	gl.gl_init()
-	bus485ThreadFunc()
+			data_ready_flg._485_data_ready_flg = True

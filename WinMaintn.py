@@ -7,6 +7,8 @@ import cv2 as cv
 import numpy as np
 
 import globalvar as gl
+from globalvar import data_ready_flg
+from globalvar import my_lock
 
 h = 480  # 画布大小
 w = 550
@@ -53,13 +55,24 @@ def WinMaintnFun():
 	imgLft = np.zeros((h, w, 3), np.uint8)
 	imgRit = np.zeros((h, w, 3), np.uint8)
 	barNum = 5
-	xBais = 30  # bar平移
+	xBais = 40  # bar平移
 	deep = []
 	zoomDeep = []
 	absDeep = []
+	"""等待数据准备"""
+	time.sleep(0.001)
+	while True:
+		if data_ready_flg.calculate_data_ready_flg and data_ready_flg._4g_data_ready_flg:
+			data_ready_flg.calculate_data_ready_flg = False
+			data_ready_flg._4g_data_ready_flg = False
+			break
+		else:
+			print("\r\n维护线程数据-----未准备完成\r\n")
+			print("calculate_data_ready_flg:",data_ready_flg.calculate_data_ready_flg)
+			print("_4g_data_ready_flg:",data_ready_flg._4g_data_ready_flg)
 
 	while True:
-		print("---------------------------------------------------------------------------")
+		print("\r\n----------------------------------------界面维护线程已启动----------------------------------------\r\n")
 		# 获取任务数据
 		sx_list = gl.get_value('g_start_x_list')
 		sy_list = gl.get_value('g_start_y_list')
@@ -397,8 +410,6 @@ def WinMaintnFun():
 		zoomFct = 0.4 * h / maxAbs
 		zoomDeep[:] = [int(v * zoomFct + h / 2) for v in deep]
 
-		# 画零线
-		cv.line(imgRit, (0, int(h / 2)), (w, int(h / 2)), (0, 0, 0), 2)
 		# 画柱状图
 		red = (0, 0, 255)
 		green = (0, 255, 0)
@@ -410,12 +421,18 @@ def WinMaintnFun():
 				cv.line(imgRit, (int(i * (w / barNum)) + xBais, int(h / 2)), (int(i * (w / barNum) + xBais), int(zoomDeep[i])),
 						green, 10)
 
+		# 画零线
+		cv.line(imgRit, (0, int(h / 2)), (w, int(h / 2)), (0, 0, 0), 10)
+
 		imgRit = imgRit[::-1, :, :].copy()  # 图像上下翻转
+
+		# 显示柱体高度
 		for i in range(len(deep)):
 			text = str(round(deep[i], 3))
 			cv.putText(imgRit, text, (int(i * (w / barNum)) + xBais, h - int(zoomDeep[i]) + 5),  cv.FONT_HERSHEY_PLAIN, 1.5,
 			           (0, 0, 0),
 			           1)
+			
 		# 保存绘制后的右窗口图
 		saveImg = imgRit.copy()
 		gl.set_value("RitWinImg", saveImg)
