@@ -1,3 +1,5 @@
+import time
+
 import serial
 import serial.tools.list_ports
 
@@ -7,16 +9,19 @@ class SerialPortCommunication(object):
 		self.port = com
 		self.bps = bps
 		self.timeout = timeout
-		# 添加其他属性
-		global ret
-		try:
-			# 打开串口，并得到串口对象
-			self.com = serial.Serial(self.port, self.bps, timeout=self.timeout)
-			# 判断是否打开成功
-			if self.com.is_open:
-				ret = True
-		except Exception as e:
-			print("---" + self.port + "open error---：", e)
+
+		while True:
+			time.sleep(0.01)
+			try:
+				# 打开串口，并得到串口对象
+				self.com = serial.Serial(self.port, self.bps, timeout=self.timeout)
+				# 判断是否打开成功
+				if self.com.is_open:
+					break
+			except Exception as e:
+				print("！！！！！！！！！" + self.port + "open error！！！！！！！！！：", e)
+
+
 
 	# 打印设备基本信息
 	def port_msg(self):

@@ -1,6 +1,6 @@
 import ast
+import datetime
 import json
-from time import sleep
 
 
 class Heart(object):
@@ -17,8 +17,8 @@ class Heart(object):
 		com.send_bytes('\n'.encode('utf-8'))
 		print("send_buf_json", send_buf_json)
 
-	def rec_heart_msg(self):
-		pass
+		# with open("4G_heart.txt", "a") as file:
+		# 	file.write(str(send_buf_json) + "\t" + datetime.datetime.now().strftime('%H:%M:%S.%f') + "\n")
 
 
 class SendMessage(object):
@@ -40,6 +40,7 @@ def task_switch_dict(rec_buf):
 	rec_buf = rec_buf[0:-1]  # 去掉'\n'   <class 'bytes'>
 	rec_to_str = str(rec_buf, encoding="utf-8")  # bytes -> str，不是dict！！！
 	rec_buf_dict = ast.literal_eval(rec_to_str)  # str -> dict
+	# rec_buf_dict = json.loads(rec_buf)
 	return rec_buf_dict
 
 

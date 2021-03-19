@@ -1,6 +1,11 @@
+#!/usr/bin/python3
+# coding = utf-8
+
 from tools import *
 import math
 import globalvar as gl
+from globalvar import my_lock
+
 
 def LatLon2XY(latitude, longitude):
 	a = 6378137.0
@@ -82,7 +87,9 @@ class GPSINSData(object):
 					return	False
 				else:  # gps信号稳定
 					gps_stable_flag = True
+					my_lock.gpsStableLedLock.acquire()
 					gl.set_value("gps_stable_flag", gps_stable_flag)
+					my_lock.gpsStableLedLock.release()
 					"""偏航角是否稳定"""
 					if rec_buf[106] == 0x00 and rec_buf[107] == 0x00 and rec_buf[108] == 0x08 and rec_buf[109] == 0x42:
 						return True

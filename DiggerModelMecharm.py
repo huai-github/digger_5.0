@@ -21,8 +21,8 @@ def DiggerModelMecharm(para=None):
 	# 挖掘机结构参数
 	#l_bc_nls = 691
 	#l_de_nls = 965.5
-	l_fi_nls = 701.125
-
+	# l_fi_nls = 701.125
+	l_fi_nls = 694
 	# 各点的高程,h表示高程，g表示对应的点
 	l_ac = 1460
 	l_ab = 402

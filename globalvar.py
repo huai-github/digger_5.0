@@ -2,14 +2,24 @@
 # -*- coding: utf-8 -*-
 import threading
 
+LOCKLOG = True
+
 
 class MyLock(object):
     def __init__(self):
-        self.GpsCalculatorLock = threading.Lock()
-        self._4gUiLock = threading.Lock()
-        self.LaserCalculatorLock = threading.Lock()
-        self._485CalculatorLock = threading.Lock()
-        self.CalculatorUiLock = threading.Lock()
+        self.GpsCalculatorLock = threading.RLock()
+        self.Win4gLock = threading.RLock()
+        self.LaserCalculatorLock = threading.RLock()
+        self.Calculator485Lock = threading.RLock()
+        self.CalculatorWinLock = threading.RLock()
+        self.CalculatorUiLock = threading.RLock()
+        self.WinUiLock = threading.RLock()
+        self.Calc4gLock = threading.RLock()
+
+        self.gpsStableLedLock = threading.RLock()
+        self.gpsLedLock = threading.RLock()
+        self.laserLedLock = threading.RLock()
+        self.gyroLedLock = threading.RLock()
 
 
 my_lock = MyLock()

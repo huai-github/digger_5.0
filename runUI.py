@@ -1,20 +1,18 @@
 #!/usr/bin/python3
 # coding = utf-8
 
-import random
 import sys
 import threading
 from time import sleep
-
+import datetime
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QDateTime
 from PyQt5.QtGui import QBrush, QImage, QPixmap, QPainter
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
+from PyQt5.QtWidgets import QApplication, QWidget
 
 import calculate_main
 import digger_ui
@@ -22,11 +20,11 @@ import multi_thread
 import globalvar as gl
 import time
 import WinMaintn
-import datetime
 import runCalibrationUi
 import _485bus
+from globalvar import my_lock
 
-g_ui_threadLock = threading.Lock()
+
 h = 480  # 画布大小
 w = 550
 
@@ -68,10 +66,6 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		self.DeepList = [0, 0, 0, 0, 0]
 		self.NumList = [0, 0, 0, 0, 0]
 
-		self.deep = 0
-		self.nowX = multi_thread.g_x
-		self.nowY = multi_thread.g_y
-
 		# 校准按钮
 		self.calibration_button.clicked.connect(self.calibrationBtnFunc)
 
@@ -84,48 +78,107 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 		self.calibrationUi.show()  # 经第二个窗口显示出来
 
 	def paintEvent(self, e):
-		# time_now = datetime.datetime.now().strftime('%H:%M:%S.%f')
-		# print("1111111111111111111111111111111111111111111111111111111", time_now)
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--win_ui--in" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
+		my_lock.WinUiLock.acquire()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--win_ui--ing" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
+		lftWinImg = gl.get_value("lftWinImg")
+		RitWinImg = gl.get_value("RitWinImg")
+		lftWinImgFlg = gl.get_value("lftWinImgFlg")
+		RitWinImgFlg = gl.get_value("RitWinImgFlg")
+		# current_work_high = gl.get_value("current_work_high")  # 当前点的施工高度
+		dist = gl.get_value("dist")
+		deep = gl.get_value("deep")
+		my_lock.WinUiLock.release()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--win_ui--out" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
 
-		x = self.groupBox_3.x()
-		y = self.groupBox_3.y()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--gps_ui--in" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
+		my_lock.gpsStableLedLock.acquire()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--gps_ui--ing" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
+		gps_stable_flag = gl.get_value("gps_stable_flag")  # gpsUI
+		my_lock.gpsStableLedLock.release()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--gps_ui--out" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
 
-		h_border_warning = self.border_warning.height()
-		w_border_warning = self.border_warning.width()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--gps_led--in" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
+		my_lock.gpsLedLock.acquire()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--gps_led--ing" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
+		gps_is_open_led = gl.get_value("gps_is_open_led")  # gps串口是否打开
+		my_lock.gpsLedLock.release()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--gps_led--out" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
 
-		x_border_warning = x + w_border_warning / 2 + 30
-		y_border_warning = y + h_border_warning / 2
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--laser_led--in" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
+		my_lock.laserLedLock.acquire()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--laser_led--ing" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
+		laserLed = gl.get_value("laserLed")  # laserUI
+		my_lock.laserLedLock.release()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--laser_led--out" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
 
-		x_gps_warning = x_border_warning
-		y_gps_warning = y_border_warning + self.border_warning.height()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--gyro_led--in" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
+		my_lock.gyroLedLock.acquire()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--gyro_led--ing" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
+		gyroLedChassis = gl.get_value("gyroLedChassis")  # 485UI
+		gyroBigLed = gl.get_value("gyroBigLed")  # 485UI
+		gyroLittleLed = gl.get_value("gyroLittleLed")  # 485UI
+		my_lock.gyroLedLock.release()
+		with open("lock_log.txt", "a") as file:
+			file.write("主线程--gyro_led--out" + "\t" + datetime.datetime.now().strftime('%H:%M:%S') + "\n")
 
 		qp = QPainter()
 		qp.begin(self)
 		"""GPS信号指示灯"""
-		gps_stable_flag = gl.get_value("gps_stable_flag")
-		if gps_stable_flag is not None:
-			if gps_stable_flag:
-				gps_warning_led(qp, Qt.green, x_gps_warning, y_gps_warning)
-			elif not gps_stable_flag:
-				gps_warning_led(qp, Qt.red, x_gps_warning, y_gps_warning)
-			else:
-				gps_warning_led(qp, Qt.yellow, x_gps_warning, y_gps_warning)
+		if gps_stable_flag:
+			self.gps_led.setStyleSheet("min-width:40px;min-height:40px;max-width:40px;max-height:40px;border-radius:20px;border:1pxsolidblack;background:green")
+		else:
+			self.gps_led.setStyleSheet("min-width:40px;min-height:40px;max-width:40px;max-height:40px;border-radius:20px;border:1pxsolidblack;background:red")
 
-			"""边界信号指示灯"""
-			dist = gl.get_value("dist")
-			if dist is not None:
-				if dist == -1:
-					border_warning_led(qp, Qt.red, x_border_warning, y_border_warning)
-				# sys.exit()
-				elif dist == 1 or dist == 0:
-					border_warning_led(qp, Qt.green, x_border_warning, y_border_warning)
-				else:
-					border_warning_led(qp, Qt.yellow, x_border_warning, y_border_warning)
+		"""边界信号指示灯"""
+		if dist == -1:
+			self.edge_led.setStyleSheet("min-width:40px;min-height:40px;max-width:40px;max-height:40px;border-radius:20px;border:1pxsolidblack;background:red")
+		elif dist == 1 or dist == 0:
+			self.edge_led.setStyleSheet("min-width:40px;min-height:40px;max-width:40px;max-height:40px;border-radius:20px;border:1pxsolidblack;background:green")
+		else:
+			self.edge_led.setStyleSheet("min-width:40px;min-height:40px;max-width:40px;max-height:40px;border-radius:20px;border:1pxsolidblack;background:yellow")
+
+		""" gps串口是否打开 """
+		if gps_is_open_led:
+			pass
+		else:
+			pass
+
+		""" 深度指示灯 """
+		if deep > 0:
+			self.deep_led.setStyleSheet("min-width:40px;min-height:40px;max-width:40px;max-height:40px;border-radius:20px;border:1pxsolidblack;background:green")
+		else:
+			self.deep_led.setStyleSheet("min-width:40px;min-height:40px;max-width:40px;max-height:40px;border-radius:20px;border:1pxsolidblack;background:red")
+
+		""" 激光指示灯 """
+		if laserLed:
+			self.laser_led.setStyleSheet("min-width:40px;min-height:40px;max-width:40px;max-height:40px;border-radius:20px;border:1pxsolidblack;background:green")
+		else:
+			self.laser_led.setStyleSheet("min-width:40px;min-height:40px;max-width:40px;max-height:40px;border-radius:20px;border:1pxsolidblack;background:red")
+
+		""" 陀螺仪指示灯 """
+		if gyroLedChassis:
+			self.gyro_led.setStyleSheet("min-width:40px;min-height:40px;max-width:40px;max-height:40px;border-radius:20px;border:1pxsolidblack;background:green")
+		else:
+			self.gyro_led.setStyleSheet("min-width:40px;min-height:40px;max-width:40px;max-height:40px;border-radius:20px;border:1pxsolidblack;background:red")
 
 		"""维护界面"""
 		# 维护左窗口
-		lftWinImg = gl.get_value("lftWinImg")
-		if gl.get_value("lftWinImgFlg"):
+		if lftWinImgFlg:
 			QtImgLine = QImage(cv.cvtColor(lftWinImg, cv.COLOR_BGR2RGB).data,
 			                   lftWinImg.shape[1],
 			                   lftWinImg.shape[0],
@@ -136,8 +189,7 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 			self.leftLabel.setScaledContents(True)
 
 		# 维护右窗口
-		RitWinImg = gl.get_value("RitWinImg")
-		if gl.get_value("RitWinImgFlg"):
+		if RitWinImgFlg:
 			QtImgLine = QImage(cv.cvtColor(RitWinImg, cv.COLOR_BGR2RGB).data,
 			                   RitWinImg.shape[1],
 			                   RitWinImg.shape[0],
@@ -147,21 +199,8 @@ class MyWindows(QWidget, digger_ui.Ui_Digger):
 			self.rightLabel.setPixmap(pixmapL)
 			self.rightLabel.setScaledContents(True)
 
-		"""显示挖掘机ID"""
-		digger_id = gl.get_value("diggerId")
-		self.diggerID.setText(str(digger_id))
-
-		"""显示当前坐标"""
-		current_x = gl.get_value('o_x') / 1000
-		current_y = gl.get_value('o_y') / 1000
-		self.nowXY.setText("(%.3f, %.3f)" % (current_x, current_y))
-
-		"""显示当前深度"""
-		o_h = gl.get_value("o_h")
-		g_start_h_list = gl.get_value("g_start_h_list")
-		self.deep = o_h / 1000 - g_start_h_list[0]
-		deepShow = round(self.deep, 3)
-		self.now_deep.setText(str(deepShow) + "米")
+		# """显示挖掘机ID"""
+		# self.diggerID.setText(str(digger_id))
 
 		"""显示时间"""
 		date = QDateTime.currentDateTime()
@@ -183,42 +222,30 @@ if __name__ == "__main__":
 	_4g_thread = threading.Thread(target=multi_thread.thread_4g_func, daemon=True)
 	_485_thread = threading.Thread(target=_485bus.bus485ThreadFunc, daemon=True)
 	g_laser_dou_thread = threading.Thread(target=multi_thread.thread_laser_dou_func, daemon=True)
+
 	calculate_thread = threading.Thread(target=calculate_main.thread_calculate_func, daemon=True)
 	WinMaintn_thread = threading.Thread(target=WinMaintn.WinMaintnFun, daemon=True)
 
-	gps_thread.start()  # 启动线程11
+	gps_thread.start()  # 启动线程
 	_485_thread.start()
 	g_laser_dou_thread.start()
 	_4g_thread.start()
-	sleep(10)
+
 	calculate_thread.start()
-	sleep(3)
 	WinMaintn_thread.start()
 	sleep(1)
-
-
-
-
-
-
-
-
 
 	app = QApplication(sys.argv)
 	mainWindow = MyWindows()
 
-	# f = open("out.txt", "w")
 	while True:
-		# time.sleep(1)
-		taskAnalysisFlg = gl.get_value("taskAnalysisFlg")
-		if taskAnalysisFlg:
-			# 清空接受完成标志位
-			taskAnalysisFlg = False
-			gl.set_value("taskAnalysisFlg", taskAnalysisFlg)
+		time.sleep(0.01)
+		run = gl.get_value("main_win_data_valid_flg")
 
+		if run:
 			mainWindow = MyWindows()
 			mainWindow.setWindowState(Qt.WindowMaximized)
-			# mainWindow.showFullScreen()  # 窗口全屏显示
-			# mainWindow.showMaximized()
+			mainWindow.showFullScreen()  # 窗口全屏显示
+			mainWindow.showMaximized()
 			mainWindow.show()
 			sys.exit(app.exec_())
