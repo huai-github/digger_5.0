@@ -25,6 +25,18 @@ class MyLock(object):
 my_lock = MyLock()
 
 
+class DataReady(object):
+    def __init__(self):
+        self.gps_data_ready_flg = False
+        self._4g_data_ready_flg = False
+        self._485_data_ready_flg = False
+        self.laser_data_ready_flg = False
+        self.calculate_data_ready_flg = False
+
+
+data_ready_flg = DataReady()
+
+
 def gl_init():
     global _global_dict
     _global_dict = {}
